@@ -1,0 +1,777 @@
+---
+title: "scRNA-seq Analysis of PBMC Immune Responses in COVID-19, Influenza, and Healthy Controls"
+author: "James Hughes"
+date: "2026-09-05"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+header-includes:
+  - \usepackage{float}
+params:
+  data_dir: "data/raw"
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  dev = "png",
+  dpi = 150,
+  cache = FALSE
+)
+# Reproducibility
+
+options(scipen = 999)
+
+# Parallel-safe RNG (important with future)
+RNGkind("L'Ecuyer-CMRG")
+set.seed(1234)
+
+repo_root <- normalizePath(if (file.exists("R/validation.R")) "." else "..", mustWork = TRUE)
+knitr::opts_knit$set(root.dir = repo_root)
+source(file.path(repo_root, "R/validation.R"))
+input_data_dir <- normalizePath(params$data_dir, winslash = "/", mustWork = TRUE)
+geo_metadata <- read.csv(file.path(repo_root, "data/metadata/geo_samples.csv"),
+                         check.names = FALSE, stringsAsFactors = FALSE)
+results_dir <- file.path(repo_root, "outputs/pbmc/figures")
+exports_dir <- file.path(repo_root, "outputs/pbmc/tables")
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(exports_dir, recursive = TRUE, showWarnings = FALSE)
+knitr::opts_chunk$set(warning = TRUE, fig.path = paste0(results_dir, "/"))
+
+save_plot <- function(plot_obj, filename, width = 7, height = 5, dpi = 200) {
+  ggplot2::ggsave(
+    filename = file.path(results_dir, filename),
+    plot = plot_obj,
+    width = width,
+    height = height,
+    dpi = dpi,
+    bg = "white"
+  )
+}
+
+fmt_int <- function(x) {
+  format(as.integer(round(x)), big.mark = ",", scientific = FALSE, trim = TRUE)
+}
+
+fmt_num <- function(x, digits = 1) {
+  format(round(x, digits), nsmall = digits, scientific = FALSE, trim = TRUE)
+}
+
+
+```
+
+# Introduction
+
+This descriptive PBMC analysis uses GSE149689: 11 COVID-19 libraries, five influenza libraries, and four healthy-control libraries. The primary paper reports eight COVID-19 patients, three sampled twice. Barcode suffixes identify libraries, not independent donors. The sample-to-group mapping is derived from GEO metadata and checked against the series' barcode-suffix documentation.
+
+The workflow retains the original 6-PC, resolution-0.3 clustering specification, QC thresholds, sample-specific doublet detection, and marker discovery. Historical annotations are transferred only when the full barcode partition is identical up to cluster-number permutation. Otherwise, clusters remain explicitly unreviewed. Group composition is descriptive; disease differential expression and independent-donor abundance testing are not performed.
+
+# Methods
+
+## Setup
+```{r libraries, message=FALSE, warning=FALSE}
+library(scDblFinder)
+library(Seurat)
+library(tidyverse)
+library(Matrix)
+library(patchwork)
+library(SingleR)
+library(SingleCellExperiment)
+library(future)
+library(celldex)
+BiocParallel::register(BiocParallel::SerialParam())
+
+available_workers <- parallel::detectCores(logical = FALSE)
+available_workers <- if (is.na(available_workers)) 2 else available_workers
+marker_workers <- max(1, min(2, available_workers - 1))
+future::plan(sequential)
+options(future.globals.maxSize = 8 * 1024^3)
+```
+
+
+### Load Data
+
+```{r load-data}
+counts <- Read10X(
+  data.dir = input_data_dir
+)
+
+dim(counts)
+
+obj <- CreateSeuratObject(
+  counts = counts,
+  project = "COVID_PBMC_scRNA",
+  min.cells = 3,
+  min.features = 200
+)
+
+# Extract sample ID from barcode suffix
+library_metadata <- map_library_metadata(colnames(obj), geo_metadata)
+obj$sample <- library_metadata$sample
+obj$group <- factor(library_metadata$group, levels = c("Normal", "Flu", "COVID"))
+obj$geo_accession <- library_metadata$geo_accession
+# These are library IDs. They must not be used as independent donor IDs.
+
+genes_initial <- nrow(obj)
+cells_initial <- ncol(obj)
+```
+
+```{r metadata-summary}
+sample_group_table <- as.data.frame(obj@meta.data) %>%
+  dplyr::count(sample, group, name = "cells_before_filter") %>%
+  dplyr::arrange(group, sample)
+
+knitr::kable(
+  sample_group_table,
+  caption = "Cell counts per original sample and assigned group before filtering."
+)
+```
+
+### Quality Control
+
+```{r qc}
+obj[["percent.mt"]] <- PercentageFeatureSet(obj, pattern = "^MT-")
+range(obj$percent.mt) ## Calculate % of mitochondrial gene expression
+
+qc_plot <- VlnPlot(
+  obj,
+  features = c("nFeature_RNA", "nCount_RNA", "percent.mt"),
+  ncol=3
+) ## Shows distribution for each cell
+save_plot(qc_plot, "qc_violin.png", width = 10, height = 4)
+qc_plot
+
+scatter1 <- FeatureScatter(obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+scatter2 <- FeatureScatter(obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
+
+save_plot(scatter1, "qc_scatter_counts_features.png", width = 5, height = 4)
+save_plot(scatter2, "qc_scatter_counts_mito.png", width = 5, height = 4)
+
+scatter1
+scatter2
+
+## Summary Statistics
+summary(obj$nFeature_RNA)
+summary(obj$nCount_RNA)
+summary(obj$percent.mt)
+
+quantile(obj$nFeature_RNA, probs = c(0.01, 0.05, 0.95, 0.99))
+quantile(obj$nCount_RNA, probs = c(0.01, 0.05, 0.95, 0.99))
+quantile(obj$percent.mt, probs = c(0.90, 0.95, 0.99))
+```
+Quality control (QC) was performed to remove low-quality and artefactual cells from the dataset. Raw scRNA-seq data can include empty droplets, dying cells, and doublets, which may distort downstream analysis. Cells were assessed using the number of detected genes (nFeature_RNA), total RNA counts (nCount_RNA), and the percentage of mitochondrial expression (percent.mt). Low gene counts indicate poor-quality cells, unusually high gene or RNA counts may reflect doublets, and elevated mitochondrial expression is consistent with stressed or dying cells.
+
+```{r qc-by-group}
+qc_by_group <- VlnPlot(
+  obj,
+  features = c("nFeature_RNA", "nCount_RNA", "percent.mt"),
+  group.by = "group",
+  pt.size = 0,
+  ncol = 3
+)
+save_plot(qc_by_group, "qc_by_group.png", width = 10, height = 4)
+qc_by_group
+```
+
+### Filtering
+```{r filtering}
+obj <- subset(obj,
+  subset = nFeature_RNA > 250 &
+           nFeature_RNA < 4500 &
+           nCount_RNA < 25000 &
+           percent.mt < 14
+)
+
+cells_after_qc <- ncol(obj)
+genes_after_qc <- nrow(obj)
+
+cells_removed_qc <- cells_initial - cells_after_qc
+pct_removed_qc <- 100 * cells_removed_qc / cells_initial
+
+cells_after_qc
+pct_removed_qc
+```
+Quality control thresholds were determined empirically from the distribution of detected genes, total counts, and mitochondrial gene expression. Cells with low feature counts were excluded to remove low-quality droplets, while upper thresholds for detected features and total counts were used to remove obvious outliers. A mitochondrial threshold of 14% was applied to remove stressed or apoptotic cells while retaining biologically relevant variability associated with infection.
+Approximately `r fmt_num(pct_removed_qc)`% of cells were removed during the initial threshold-based quality-control step. A dedicated doublet-calling procedure was then applied separately to distinguish likely multiplets from high-quality singlets.
+
+```{r post-filter-composition}
+meta_df <- as.data.frame(obj@meta.data)
+
+post_filter_sample_group <- meta_df %>%
+  dplyr::count(sample, group, name = "cells_after_filter") %>%
+  dplyr::arrange(group, sample)
+
+knitr::kable(
+  post_filter_sample_group,
+  caption = "Cell counts per sample and group after threshold-based quality-control filtering."
+)
+```
+
+### Doublet Detection
+```{r doublet-detection}
+if (!requireNamespace("scDblFinder", quietly = TRUE)) {
+  stop("Package 'scDblFinder' is required. Install it with BiocManager::install('scDblFinder').")
+}
+
+sce <- as.SingleCellExperiment(obj)
+sce$sample <- obj$sample
+
+sce <- scDblFinder::scDblFinder(
+  sce,
+  samples = sce$sample,
+  verbose = FALSE
+)
+
+obj$doublet_score <- sce$scDblFinder.score
+obj$doublet_status <- sce$scDblFinder.class
+
+doublet_calls <- obj@meta.data %>%
+  tibble::rownames_to_column("Cell") %>%
+  dplyr::select(Cell, sample, group, doublet_status, doublet_score)
+
+doublet_summary <- doublet_calls %>%
+  dplyr::count(doublet_status, name = "cells") %>%
+  dplyr::mutate(prop = cells / sum(cells))
+
+doublet_by_sample <- doublet_calls %>%
+  dplyr::count(sample, group, doublet_status, name = "cells") %>%
+  dplyr::group_by(sample, group) %>%
+  tidyr::complete(doublet_status = c("singlet", "doublet"), fill = list(cells = 0L)) %>%
+  dplyr::ungroup() %>%
+  tidyr::pivot_wider(
+    names_from = doublet_status,
+    values_from = cells,
+    values_fill = 0
+  ) %>%
+  dplyr::mutate(
+    total_cells = singlet + doublet,
+    doublet_rate = doublet / total_cells
+  ) %>%
+  dplyr::arrange(group, sample)
+
+knitr::kable(
+  doublet_summary,
+  digits = 3,
+  caption = "scDblFinder doublet calls before singlet filtering."
+)
+
+knitr::kable(
+  doublet_by_sample,
+  digits = 3,
+  caption = "Estimated doublet burden by sample."
+)
+
+obj <- subset(obj, subset = doublet_status == "singlet")
+
+cells_filtered <- ncol(obj)
+cells_removed_doublets <- cells_after_qc - cells_filtered
+pct_removed_doublets <- 100 * cells_removed_doublets / cells_after_qc
+```
+Likely doublets were identified with `scDblFinder`, using sample labels so that each library was evaluated separately rather than as a single pooled run. Cells predicted to be doublets were removed before normalisation and clustering to reduce artifactual hybrid transcriptional profiles and inflated cluster heterogeneity. This step removed `r fmt_int(cells_removed_doublets)` cells, corresponding to `r fmt_num(pct_removed_doublets)`% of post-QC cells.
+
+```{r post-doublet-composition}
+meta_df <- as.data.frame(obj@meta.data)
+
+post_doublet_sample_group <- meta_df %>%
+  dplyr::count(sample, group, name = "cells_after_doublet_filter") %>%
+  dplyr::arrange(group, sample)
+
+knitr::kable(
+  post_doublet_sample_group,
+  caption = "Cell counts per sample and group after doublet removal."
+)
+```
+
+
+
+### Gene Filtering
+```{r gene-filtering}
+genes_before <- nrow(obj)
+
+counts_mat <- GetAssayData(obj, layer = "counts")
+keep_genes <- Matrix::rowSums(counts_mat > 0) >= 10
+obj <- subset(obj, features = rownames(obj)[keep_genes])
+
+genes_after <- nrow(obj)
+genes_removed <- genes_before - genes_after
+genes_filtered <- genes_after
+
+gene_filter_summary <- data.frame(
+  Metric = c("Genes before gene filtering", "Genes after gene filtering", "Genes removed"),
+  Value = c(genes_before, genes_after, genes_removed)
+)
+
+knitr::kable(
+  gene_filter_summary,
+  caption = "Gene retention following sparse-feature filtering."
+)
+```
+Genes detected in fewer than 10 cells were removed prior to normalisation. This reduces the number of extremely sparse features, which improves memory usage and runtime while retaining the genes that contribute most meaningfully to downstream clustering and marker detection.
+
+### Normalisation
+```{r normalization}
+obj <- NormalizeData(
+  obj,
+  normalization.method = "LogNormalize",
+  scale.factor = 10000
+)
+```
+The data were normalised to account for differences in sequencing depth across cells, allowing gene expression levels to be compared across the dataset.
+
+### Variable Features
+```{r variable-features}
+obj <- FindVariableFeatures(obj, selection.method = "vst", nfeatures = 2000)
+
+variable_plot <- VariableFeaturePlot(obj)
+save_plot(variable_plot, "variable_features.png", width = 8, height = 5)
+
+variable_plot
+```
+Highly variable genes were identified to capture the most informative features, focusing downstream analysis on genes with meaningful biological variation.
+
+### Scaling
+```{r scaling}
+obj <- ScaleData(obj, features = VariableFeatures(obj))
+```
+The data were scaled so that expression values for each gene were centred and standardised across cells. This step is important prior to principal component analysis, as it prevents genes with high variance or large absolute expression values from disproportionately influencing dimensionality reduction.
+
+### PCA
+```{r pca}
+obj <- RunPCA(obj, features = VariableFeatures(obj))
+n_pcs <- 6
+
+pca_plot <- DimPlot(obj, reduction = "pca", dims = c(1,2), group.by = "group", label = FALSE, raster = TRUE) +
+  ggtitle("PCA of PBMC scRNA-seq Data") +
+  theme_classic()
+pca_plot
+save_plot(pca_plot, "pca_plot_grouped.png", width = 8, height = 6)
+
+elbow_plot <- ElbowPlot(obj) +
+  scale_x_continuous(breaks = 1:20) +
+  ggtitle("Principal Component Selection (Elbow Plot)") +
+    xlab("Principal Component") +
+    ylab("Standard Deviation")  +
+    theme_classic()
+
+save_plot(elbow_plot, "elbow_plot.png", width = 7, height = 5)
+
+elbow_plot
+```
+Principal component analysis (PCA) was performed to reduce dimensionality and summarise the major sources of variation in the dataset. Inspection of the elbow plot indicated that the first six principal components captured the main structured sources of variation in the dataset and were therefore retained for downstream analysis.
+
+```{r pca-by-sample}
+pca_sample_plot <- DimPlot(
+  obj,
+  reduction = "pca",
+  dims = c(1, 2),
+  group.by = "sample",
+  raster = TRUE
+) +
+  ggtitle("PCA coloured by sample") +
+  theme_classic()
+
+save_plot(pca_sample_plot, "pca_plot_sample.png", width = 8, height = 6)
+pca_sample_plot
+```
+PCA coloured by library helps inspect sample-associated structure. Apparent mixing alone does not establish absence of batch effects.
+
+```{r pca-loadings}
+
+pc1_loadings <- VizDimLoadings(obj, dims = 1, nfeatures = 20) +
+  ggtitle("Top genes driving PC1 (cell identity)")
+
+pc2_loadings <- VizDimLoadings(obj, dims = 2, nfeatures = 20 ) +
+  ggtitle("Top genes driving PC2 (immune activation)")
+
+pc1_loadings
+pc2_loadings
+```
+PCA loadings identify genes contributing to each axis; lineage or activation interpretations require inspection of the current run.
+
+### Clustering
+```{r clustering}
+obj <- FindNeighbors(obj, dims = 1:n_pcs)
+obj <- FindClusters(obj, resolution = 0.3)
+```
+Cells were clustered using a graph-based approach implemented in Seurat. A shared nearest neighbour graph was constructed from the selected principal components, and clusters were identified using community detection. This step groups transcriptionally similar cells, allowing putative cell populations or cellular states to be resolved in an unsupervised manner. The clustering resolution was set to 0.3 to generate a moderate level of granularity while avoiding over-fragmentation of the dataset.
+
+### UMAP
+```{r umap}
+obj <- RunUMAP(obj, dims = 1:n_pcs, seed.use = 1234)
+umap_clusters <- DimPlot(obj,
+                         reduction = "umap",
+                         label = TRUE,
+                         repel = TRUE,
+                         raster = TRUE) +
+  ggtitle("UMAP coloured by cluster")
+
+save_plot(umap_clusters, "umap_clusters.png", width = 8, height = 6)
+
+umap_clusters
+```
+Uniform Manifold Approximation and Projection (UMAP) was used to visualise the high-dimensional scRNA-seq data in two dimensions. UMAP preserves local structure in the data and allows transcriptionally similar cells to be displayed close together, facilitating interpretation of cluster relationships and population structure.
+
+```{r umap-by-group}
+umap_group <- DimPlot(
+  obj,
+  reduction = "umap",
+  group.by = "group",
+  raster = TRUE
+) +
+  ggtitle("UMAP coloured by condition")
+
+save_plot(umap_group, "umap_group.png", width = 8, height = 6)
+umap_group
+```
+
+UMAP by condition is exploratory and does not test condition effects.
+Clusters summarize transcriptional similarity under the selected parameters. Their stability requires further assessment.
+
+### Feature Plot
+```{r feature-plot}
+representative_marker_features <- FeaturePlot(
+  obj,
+  features = c("KLRF1", "CD8A", "IL7R", "S100A8", "MS4A1", "GP9"),
+  ncol = 3,
+  keep.scale = "all",
+  raster = TRUE
+)
+
+save_plot(representative_marker_features, "representative_marker_featureplots.png", width = 10, height = 7)
+representative_marker_features
+```
+Feature plots of representative marker genes confirmed the presence of major immune populations before formal annotation. `KLRF1` marked NK-like cytotoxic lymphocytes, `CD8A` highlighted CD8 T cells, `IL7R` marked naive or central-memory T cells, `S100A8` highlighted inflammatory monocytes, `MS4A1` identified B cells, and `GP9` marked platelet-rich cells. These marker patterns support biologically interpretable clusters while also flagging non-immune or contaminating populations that should be reported conservatively.
+
+### Marker Gene Identification
+```{r marker-identification}
+# Never reuse a marker file merely because numeric cluster IDs match.
+future::plan(multisession, workers = marker_workers)
+markers <- FindAllMarkers(
+  obj, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25
+) %>%
+  dplyr::filter(p_val_adj < 0.05) %>%
+  dplyr::mutate(cluster = as.character(cluster))
+future::plan(sequential)
+write.csv(markers, file.path(exports_dir, "all_markers.csv"), row.names = FALSE)
+head(markers)
+table(markers$cluster)
+```
+Marker genes were identified for each cluster using differential expression analysis implemented in Seurat. For each cluster, expression was compared against all remaining cells to identify genes that were significantly upregulated and characteristic of that population. Only positive markers were retained, and minimum expression and fold-change thresholds were applied to prioritise robust and biologically informative genes. Marker tests describe clusters and do not constitute donor-level disease differential expression.
+
+### Top Marker Genes by Cluster
+```{r top-marker-table, echo=FALSE}
+top10_markers <- markers %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 10, with_ties = FALSE) %>%
+  ungroup()
+
+top5_markers <- markers %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 5, with_ties = FALSE) %>%
+  ungroup()
+
+cluster_marker_evidence <- top10_markers %>%
+  mutate(cluster = as.character(cluster)) %>%
+  group_by(cluster) %>%
+  summarise(
+    top_markers = paste(gene[seq_len(min(6, dplyr::n()))], collapse = ", "),
+    .groups = "drop"
+  )
+
+knitr::kable(
+  top5_markers[, c("cluster", "gene", "avg_log2FC", "pct.1", "p_val_adj")],
+  digits = 3,
+  caption = "Top five marker genes identified for each cluster."
+)
+```
+
+```{r marker-heatmap}
+DefaultAssay(obj) <- "RNA"
+
+top_genes <- markers %>%
+  dplyr::group_by(cluster) %>%
+  dplyr::slice_max(avg_log2FC, n = 5, with_ties = FALSE) %>%
+  dplyr::pull(gene) %>%
+  unique()
+
+cells_use <- unlist(lapply(
+  split(colnames(obj), obj$seurat_clusters),
+  function(x) sample(x, min(50, length(x)))
+))
+
+obj <- ScaleData(obj, features = top_genes, verbose = FALSE)
+
+marker_heatmap <- DoHeatmap(
+  obj,
+  features = top_genes,
+  cells = cells_use,
+  group.by = "seurat_clusters"
+) + NoLegend()
+
+save_plot(marker_heatmap, "marker_heatmap.png", width = 11, height = 8)
+marker_heatmap
+```
+
+### Canonical Immune Marker Expression
+```{r canonical-markers}
+canonical_dotplot <- DotPlot(
+  obj,
+   features = c(
+    "KLRF1", "TRDC", "NKG7", "GNLY",        # NK-like/cytotoxic cells
+    "CD3D", "CD8A", "CD8B", "GZMK",        # CD8 T cells
+    "IL7R", "MAL", "LEF1", "CCR7",         # naive or central-memory T cells
+    "MS4A1", "CD79A", "IGHD", "TCL1A",     # B cells
+    "S100A8", "S100A12", "EREG", "MCEMP1", # inflammatory monocytes
+    "LGALS2", "THBD", "C1QA", "CSF1R",     # activated/non-classical monocytes
+    "IFI27", "ISG15", "IFITM3",            # interferon-stimulated cells
+    "PPBP", "GP9", "CLEC1B",               # platelet-rich cells
+    "HBA1", "HBA2", "GYPA", "ALAS2",       # erythroid cells
+    "STMN1", "PCNA"                         # cycling/activated cells
+  )
+) + RotatedAxis()
+
+save_plot(canonical_dotplot, "canonical_marker_dotplot.png", width = 14, height = 8)
+canonical_dotplot
+```
+### Cluster Annotation
+```{r cluster-annotation}
+Idents(obj) <- "seurat_clusters"
+obj$cluster_id <- as.character(Idents(obj))
+
+reference_membership <- read.csv(
+  file.path(repo_root, "reference/tables/cell_metadata_with_annotations.csv"),
+  row.names = 1, check.names = FALSE, stringsAsFactors = FALSE
+)
+reference_membership$Cell <- rownames(reference_membership)
+manual_annotation_map <- reviewed_cluster_lookup(
+  colnames(obj), obj$cluster_id, reference_membership
+)
+annotation_transfer_verified <- !is.null(manual_annotation_map)
+if (!annotation_transfer_verified) {
+  manual_annotation_map <- data.frame(
+    cluster = character(), annotation = character(), confidence = character(),
+    annotation_note = character()
+  )
+  warning("Cluster membership differs from the reviewed reference; labels require new marker review.")
+}
+
+observed_clusters <- tibble::tibble(cluster = unique(as.character(obj$cluster_id))) %>%
+  mutate(cluster_order = suppressWarnings(as.numeric(cluster))) %>%
+  arrange(cluster_order, cluster) %>%
+  select(-cluster_order)
+
+cluster_annotation_table <- observed_clusters %>%
+  left_join(manual_annotation_map, by = "cluster") %>%
+  left_join(cluster_marker_evidence, by = "cluster") %>%
+  mutate(
+    annotation = dplyr::coalesce(annotation, paste("Unannotated cluster", cluster)),
+    confidence = dplyr::coalesce(confidence, "Needs review"),
+    annotation_note = dplyr::coalesce(
+      annotation_note,
+      "This cluster was not present in the reviewed annotation map and should be inspected before interpretation."
+    )
+  ) %>%
+  mutate(cluster_order = suppressWarnings(as.numeric(cluster))) %>%
+  arrange(cluster_order, cluster) %>%
+  select(-cluster_order)
+
+label_lookup <- setNames(cluster_annotation_table$annotation, cluster_annotation_table$cluster)
+confidence_lookup <- setNames(cluster_annotation_table$confidence, cluster_annotation_table$cluster)
+
+obj$annotation <- unname(label_lookup[obj$cluster_id])
+obj$annotation_confidence <- unname(confidence_lookup[obj$cluster_id])
+Idents(obj) <- "annotation"
+
+knitr::kable(
+  cluster_annotation_table %>%
+    dplyr::select(cluster, annotation, top_markers, confidence, annotation_note),
+  caption = "Marker-supported annotation map applied to the final clusters."
+)
+
+annotated_umap <- DimPlot(
+  obj,
+  reduction = "umap",
+  label = TRUE,
+  label.size = 3,
+  repel = TRUE,
+  raster = TRUE
+)
+save_plot(annotated_umap, "annotated_umap.png", width = 8, height = 6)
+annotated_umap
+```
+Cluster identities were assigned from cluster-specific marker genes and canonical immune marker expression. The annotation table is retained in the report so that each label can be checked against its marker evidence, and lower-confidence or contaminant-like populations are explicitly named rather than over-interpreted as core immune subtypes.
+
+### Annotation Validation (SingleR)
+```{r singler-validation}
+
+ref <- celldex::HumanPrimaryCellAtlasData()
+
+pred <- SingleR(
+  test = GetAssayData(obj, layer = "data"),
+  ref = ref,
+  labels = ref$label.main
+)
+
+obj$SingleR_labels <- pred$labels
+
+obj$SingleR_main <- gsub("_", " ", obj$SingleR_labels)
+singler_plot <- DimPlot(obj, group.by = "SingleR_main", label = TRUE, repel = TRUE, raster = TRUE)
+save_plot(singler_plot, "singler_umap.png", width = 9, height = 6)
+singler_plot
+```
+SingleR provides reference-based lineage support; agreement is descriptive and does not independently validate every cluster annotation.
+
+```{r annotation-agreement}
+annotation_table <- table(
+  Annotation = Idents(obj),
+  SingleR = obj$SingleR_main
+)
+
+annotation_df <- as.data.frame(annotation_table) %>%
+  filter(Freq > 0) %>%
+  arrange(desc(Freq))
+
+knitr::kable(
+  annotation_df,
+  caption = "Agreement between marker-supported annotation and SingleR lineage labels."
+)
+```
+
+
+### Cluster Sizes
+
+```{r cluster-size-table, echo=FALSE}
+cluster_sizes <- data.frame(
+  Cluster = names(table(Idents(obj))),
+  Cells = as.integer(table(Idents(obj))),
+  Proportion = sprintf("%.1f%%", 100 * as.integer(table(Idents(obj))) / sum(table(Idents(obj))))
+)
+
+cluster_sizes <- cluster_sizes %>%
+  arrange(desc(Cells))
+
+total_annotated_cells <- sum(cluster_sizes$Cells)
+n_clusters <- nrow(cluster_sizes)
+knitr::kable(
+  cluster_sizes,
+  caption = "Cluster sizes after annotation."
+)
+```
+
+```{r cluster-by-group}
+sample_group_lookup <- obj@meta.data %>%
+  dplyr::distinct(sample, group)
+
+annotation_levels <- sort(unique(as.character(Idents(obj))))
+
+cluster_group_prop <- obj@meta.data %>%
+  as.data.frame() %>%
+  tibble::as_tibble() %>%
+  mutate(
+    sample = as.character(sample),
+    group = as.character(group),
+    annotation = as.character(Idents(obj))
+  ) %>%
+  dplyr::count(sample, group, annotation, name = "cells_in_annotation") %>%
+  right_join(
+    tidyr::crossing(sample_group_lookup, annotation = annotation_levels),
+    by = c("sample", "group", "annotation")
+  ) %>%
+  mutate(cells_in_annotation = tidyr::replace_na(cells_in_annotation, 0L)) %>%
+  group_by(sample, group) %>%
+  mutate(
+    total_cells = sum(cells_in_annotation),
+    prop = cells_in_annotation / total_cells
+  ) %>%
+  ungroup()
+
+cluster_group_summary <- cluster_group_prop %>%
+  group_by(group, annotation) %>%
+  summarise(
+    mean_prop = mean(prop),
+    median_prop = median(prop),
+    sd_prop = sd(prop),
+    samples = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(annotation, group)
+
+knitr::kable(
+  cluster_group_summary,
+  digits = 3,
+  caption = "Mean sample-level annotated cell-type proportions within each condition."
+)
+```
+
+Composition is summarized per library, including zero counts for absent populations. Libraries with repeat sampling are not independent donor replicates. No Kruskal-Wallis p-values are generated: valid disease comparisons require an explicit donor/time-point mapping and an appropriate repeated-measures or donor-selection design.
+
+```{r cluster-by-group-plot}
+cluster_group_plot <- cluster_group_prop %>%
+  ggplot(aes(x = group, y = prop, colour = group)) +
+  geom_boxplot(outlier.shape = NA, width = 0.65, alpha = 0.35) +
+  geom_jitter(width = 0.15, size = 1.4, alpha = 0.8) +
+  facet_wrap(~ annotation, scales = "free_y") +
+  ylab("Proportion of cells per sample") +
+  xlab("Condition") +
+  ggtitle("Sample-aware annotated cell-type composition by condition") +
+  theme_classic() +
+  theme(legend.position = "none")
+
+save_plot(cluster_group_plot, "cluster_composition_by_group.png", width = 9, height = 6)
+cluster_group_plot
+```
+
+## Results and interpretation
+
+Seurat object creation retained `r fmt_int(cells_initial)` cells; threshold QC retained `r fmt_int(cells_after_qc)`, and doublet filtering retained `r fmt_int(cells_filtered)` singlets. Gene filtering retained `r fmt_int(genes_filtered)` features. There are `r n_clusters` reported labels. Historical annotation transfer passed the exact partition check: `r annotation_transfer_verified`.
+
+Interpret labels together with the computed markers, canonical-marker plots, and SingleR support. Unannotated clusters require new review. Platelet-rich, erythroid, and mixed interferon-associated populations should not be treated as established immune-cell mechanisms. UMAP separation and apparent mixing do not rule out batch effects or prove disease effects.
+
+Library proportions describe the observed data. Differences can reflect sampling, processing, cell recovery, and repeated measurements. The analysis does not establish absolute cell abundance, cell-intrinsic disease regulation, or causal pathway activation.
+
+## Exported Outputs
+
+```{r exports}
+write.csv(markers, file.path(exports_dir, "all_markers.csv"), row.names = FALSE)
+write.csv(top10_markers, file.path(exports_dir, "top10_markers_by_cluster.csv"), row.names = FALSE)
+write.csv(top5_markers, file.path(exports_dir, "top5_markers_by_cluster.csv"), row.names = FALSE)
+write.csv(cluster_annotation_table, file.path(exports_dir, "cluster_annotation_table.csv"), row.names = FALSE)
+write.csv(cluster_sizes, file.path(exports_dir, "cluster_sizes.csv"), row.names = FALSE)
+write.csv(doublet_calls, file.path(exports_dir, "doublet_calls.csv"), row.names = FALSE)
+write.csv(doublet_summary, file.path(exports_dir, "doublet_summary.csv"), row.names = FALSE)
+write.csv(doublet_by_sample, file.path(exports_dir, "doublet_by_sample.csv"), row.names = FALSE)
+write.csv(cluster_group_summary, file.path(exports_dir, "cluster_composition_by_group.csv"), row.names = FALSE)
+write.csv(cluster_group_prop, file.path(exports_dir, "cluster_composition_by_sample.csv"), row.names = FALSE)
+write.csv(annotation_df, file.path(exports_dir, "annotation_vs_singler_labels.csv"), row.names = FALSE)
+write.csv(
+  data.frame(
+    Cell = colnames(obj),
+    Annotation = obj$annotation,
+    SingleR_label = obj$SingleR_main
+  ),
+  file.path(exports_dir, "singleR_labels.csv"),
+  row.names = FALSE
+)
+write.csv(
+  obj@meta.data,
+  file.path(exports_dir, "cell_metadata_with_annotations.csv"),
+  row.names = TRUE
+)
+```
+
+Tables, annotations, and the saved object are written to `outputs/pbmc/tables/`; figures are written to `outputs/pbmc/figures/`. The report runner keeps rendered HTML and intermediates under `outputs/pbmc/`.
+
+## Interpretation boundary
+
+This report provides reproducible preprocessing and descriptive clustering. A new run must be reviewed against its own marker and library-contribution evidence before clinical or mechanistic interpretation.
+
+## Session Info
+```{r session-info}
+writeLines(capture.output(sessionInfo()), file.path(exports_dir, "session_info.txt"))
+saveRDS(obj, file.path(exports_dir, "analysis_seurat.rds"))
+sessionInfo()
+```

@@ -1,0 +1,16 @@
+# Local sessions and generated runs
+.RData
+.RDataTmp
+.Rhistory
+.Rproj.user/
+.r-library/
+__pycache__/
+outputs/
+*_cache/
+*_files/
+# External raw inputs (keep out of Git)
+data/raw/
+*.rds
+*.RDS
+.cache/
+.Renviron

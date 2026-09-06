@@ -1,0 +1,6 @@
+raw_args <- commandArgs(FALSE)
+script <- sub("^--file=", "", raw_args[grepl("^--file=", raw_args)][1])
+root <- normalizePath(file.path(dirname(script), ".."), mustWork = TRUE)
+source(file.path(root, "R/runtime.R"))
+configure_project(root)
+print(check_project_environment(root), row.names = FALSE)

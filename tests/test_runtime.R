@@ -1,0 +1,18 @@
+source("R/runtime.R")
+# Regression: atlas marker vectors must survive CSV export as one field.
+x <- data.frame(cluster = c("0", "1"))
+x$marker_vector <- list(c("A", "B"), character())
+dest <- tempfile(fileext = ".csv")
+write.csv(csv_ready(x), dest, row.names = FALSE)
+y <- read.csv(dest, colClasses = "character")
+stopifnot(identical(y$marker_vector, c("A;B", "")))
+unlink(dest)
+# Regression: an earlier or failed run must never be silently overwritten.
+run <- tempfile()
+dir.create(run)
+require_new_run(run)
+writeLines("previous result", file.path(run, "sentinel.txt"))
+expect_error(require_new_run(run))
+stopifnot(identical(readLines(file.path(run, "sentinel.txt")), "previous result"))
+unlink(run, recursive = TRUE)
+cat("PASS: CSV list serialization and preservation of existing run directories.\n")
