@@ -12,8 +12,11 @@ Maintenance date: 2026-09-06. Scope: engineering only. Existing analysis designs
 - Primary and atlas render preflights and the R Markdown integration render: PASS.
 - Both Rmds parse. Regression tests cover exact historical partition transfer, list-column CSV serialization, and preserving existing run directories.
 
-The full primary and atlas analyses have not been rerun. At inspection the workstation had approximately 1.1 GiB free physical RAM out of approximately 15.7 GiB. The sparse values and row indices alone require approximately 1.42 GiB, before import temporaries, Seurat objects, normalization or worker copies. No saved complete primary/atlas object or completed refactored report was present. Full rendering was therefore not practical and was not started. A small integration render establishes the rendering toolchain only. Historical images and tables remain explicitly historical.
+The full primary PBMC analysis was rerun successfully end-to-end on 2026-09-06 using the original read-only 10x inputs. An initial full-run attempt reached marker identification but failed because the Windows multisession marker step could not allocate a serialization buffer. Marker discovery was therefore changed from future::plan(multisession) to future::plan(sequential), without changing the marker test, thresholds, clustering parameters, source data, or biological interpretation. The subsequent primary workflow completed successfully.
 
+The completed run produced a rendered HTML report and finished with run_status.txt = complete. scripts/verify_run.py verified all 14 recorded input hashes and all 55 output hashes against the completed run.
+
+The atlas sensitivity analysis has not yet been rerun. Full atlas visual QA therefore remains unverified.
 ```sh
 python scripts/validate_raw.py path/to/10x_directory --full
 Rscript --vanilla scripts/render.R path/to/10x_directory --preflight
@@ -30,7 +33,7 @@ python scripts/verify_run.py outputs/pbmc --data-dir path/to/10x_directory
 
 The SingleR reference is fetched by the existing `celldex::HumanPrimaryCellAtlasData()` call. Its downloaded reference contents are not included in the current raw-input manifest or pinned to a retained reference artifact. The new runner redirects future R-user caches locally, but does not establish a reproducible offline reference download. Network availability and reference identity remain prerequisites to document when a full run is feasible.
 
-Independent raw-download identity, a donor/time-point crosswalk, full transitive dependency locking and independent-machine reproduction remain unverified. PDF rendering was not attempted. Full report visual QA cannot be claimed without a completed render. No scientific changes were made to resolve these limitations.
+Independent raw-download identity, a donor/time-point crosswalk, full transitive dependency locking and independent-machine reproduction remain unverified. PDF rendering was not attempted. Full primary PBMC report rendering is now complete; atlas report visual QA remains unverified. No scientific changes were made to resolve these limitations.
 
 ## Executed validation commands
 

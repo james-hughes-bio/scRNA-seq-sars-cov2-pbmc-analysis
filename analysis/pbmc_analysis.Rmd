@@ -449,7 +449,7 @@ Feature plots of representative marker genes confirmed the presence of major imm
 ### Marker Gene Identification
 ```{r marker-identification}
 # Never reuse a marker file merely because numeric cluster IDs match.
-future::plan(multisession, workers = marker_workers)
+future::plan(sequential)
 markers <- FindAllMarkers(
   obj, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25
 ) %>%

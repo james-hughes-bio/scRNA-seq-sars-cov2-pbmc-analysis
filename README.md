@@ -6,7 +6,7 @@ GSE149689 has 20 libraries: 11 COVID-19, five influenza, and four healthy contro
 
 ## Status and scope
 
-The historical exports describe 53,380 singlets and 12 clusters; their internal consistency was checked against cell metadata. Both notebooks pass R parsing and input/annotation guard tests. Every sparse input entry passed streaming structural validation. **The refactored full single-cell workflow and atlas sensitivity screen have not been rerun.** Historical images and tables remain explicitly labeled under reference/.
+The historical exports describe 53,380 singlets and 12 clusters; their internal consistency was checked against cell metadata. Both notebooks pass R parsing and input/annotation guard tests. Every sparse input entry passed streaming structural validation. **The refactored primary PBMC workflow was rerun successfully end-to-end on 2026-09-06. The completed run passed manifest verification for all 14 inputs and all 55 generated outputs. The atlas sensitivity screen has not yet been rerun.** Historical images and tables remain explicitly labeled under reference/.
 
 The primary source retains six PCs, resolution 0.3, original QC thresholds, and marker parameters. RNG kind is now set before seeding. Saved markers are not reused. Historical annotations transfer only after exact full-partition comparison, allowing cluster-number permutations. Changed partitions remain unannotated pending marker review.
 
