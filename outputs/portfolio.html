@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PBMC scRNA-seq analysis of SARS-CoV-2</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #202124; }
+    h1, h2 { line-height: 1.2; }
+    .summary { background: #f6f8fa; padding: 18px 22px; border-radius: 8px; }
+    img { max-width: 100%; height: auto; border: 1px solid #ddd; margin: 10px 0 28px; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0 28px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: #f6f8fa; }
+    a { color: #0969da; }
+    .note { font-size: 0.95em; color: #57606a; }
+  </style>
+</head>
+<body>
+  <h1>Single-cell RNA-seq analysis of SARS-CoV-2 PBMC samples</h1>
+  <p>Portfolio summary of the GSE149689 PBMC single-cell workflow.</p>
+
+  <div class="summary">
+    <h2>Key results</h2>
+    <ul>
+      <li>20 libraries: 11 COVID-19, five influenza and four healthy controls.</li>
+      <li>53,380 singlets represented in the validated retained export.</li>
+      <li>12 annotated clusters spanning major lymphoid, myeloid and other PBMC-associated populations.</li>
+      <li>The workflow includes QC, library-specific doublet detection, normalization, PCA, clustering, UMAP, marker discovery and annotation review.</li>
+    </ul>
+  </div>
+
+  <h2>Annotated UMAP</h2>
+  <img src="figures/annotated_umap.png" alt="Annotated PBMC UMAP">
+
+  <h2>Canonical marker expression</h2>
+  <img src="figures/canonical_marker_dotplot.png" alt="Canonical marker dot plot">
+
+  <h2>Cluster composition by group</h2>
+  <img src="figures/cluster_composition_by_group.png" alt="Cluster composition by group">
+
+  <h2>QC by group</h2>
+  <img src="figures/qc_by_group.png" alt="QC distributions by group">
+
+  <h2>Marker heatmap</h2>
+  <img src="figures/marker_heatmap.png" alt="Marker heatmap">
+
+  <h2>Result tables</h2>
+  <table>
+    <tr><th>File</th><th>Contents</th></tr>
+    <tr><td><a href="tables/cluster_annotation_table.csv">cluster_annotation_table.csv</a></td><td>Reviewed cluster labels, confidence and supporting markers.</td></tr>
+    <tr><td><a href="tables/top10_markers_by_cluster.csv">top10_markers_by_cluster.csv</a></td><td>Top marker genes for each retained cluster.</td></tr>
+    <tr><td><a href="tables/all_markers.csv">all_markers.csv</a></td><td>Retained marker-discovery results.</td></tr>
+    <tr><td><a href="tables/cluster_composition_by_group.csv">cluster_composition_by_group.csv</a></td><td>Descriptive cluster composition by study group.</td></tr>
+    <tr><td><a href="tables/doublet_by_sample.csv">doublet_by_sample.csv</a></td><td>Estimated doublet burden by library.</td></tr>
+  </table>
+
+  <h2>Interpretation</h2>
+  <p>The project demonstrates a complete PBMC scRNA-seq workflow and conservative cluster annotation. Group-level composition is descriptive: the COVID-19 libraries are not independent donor replicates because three of eight COVID-19 patients were sampled twice.</p>
+
+  <p class="note">Selected figures and tables shown here are retained validated exports. The refactored primary workflow was also rerun successfully end-to-end on 2026-09-06. For code, see <a href="../analysis/pbmc_analysis.Rmd">analysis/pbmc_analysis.Rmd</a>.</p>
+</body>
+</html>

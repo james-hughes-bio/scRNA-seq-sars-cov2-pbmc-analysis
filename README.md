@@ -1,70 +1,111 @@
 # Single-cell RNA-seq analysis of SARS-CoV-2 PBMC samples
 
-The primary source is [analysis/pbmc_analysis.Rmd](analysis/pbmc_analysis.Rmd): QC, library-specific doublet detection, normalization, PCA, clustering, marker discovery, annotation review, and descriptive library composition.
+A compact single-cell RNA-seq analysis of GSE149689 PBMCs using Seurat and scDblFinder. The dataset contains 20 libraries: 11 COVID-19, five influenza and four healthy controls. The retained analysis contains 53,380 singlets across 12 annotated clusters, spanning T-cell, B-cell, NK/cytotoxic, monocyte, interferon-stimulated, platelet-rich and erythroid populations.
 
-GSE149689 has 20 libraries: 11 COVID-19, five influenza, and four healthy controls. The primary paper reports **eight COVID-19 patients**, three sampled twice. Barcode suffixes identify libraries, not independent donors.
+The primary workflow was rerun successfully end-to-end on 2026-09-06. Because three of the eight COVID-19 patients were sampled twice, library composition is treated descriptively rather than as an independent-donor disease test.
 
-## Status and scope
+[Run script](analysis/run_analysis.R) · [Analysis notebook](analysis/pbmc_analysis.Rmd) · [Portfolio report](outputs/portfolio.html) · [Figures](outputs/figures) · [Result tables](outputs/tables)
 
-The historical exports describe 53,380 singlets and 12 clusters; their internal consistency was checked against cell metadata. Both notebooks pass R parsing and input/annotation guard tests. Every sparse input entry passed streaming structural validation. **The refactored primary PBMC workflow was rerun successfully end-to-end on 2026-09-06. The completed run passed manifest verification for all 14 inputs and all 55 generated outputs. The atlas sensitivity screen has not yet been rerun.** Historical images and tables remain explicitly labeled under reference/.
+## Key results
 
-The primary source retains six PCs, resolution 0.3, original QC thresholds, and marker parameters. RNG kind is now set before seeding. Saved markers are not reused. Historical annotations transfer only after exact full-partition comparison, allowing cluster-number permutations. Changed partitions remain unannotated pending marker review.
+- 53,380 singlets retained in the validated historical export
+- 12 annotated clusters recovered from the PBMC dataset
+- major populations include CD8 T cells, IL7R+ T cells, B cells, inflammatory/activated/non-classical monocytes, NK/cytotoxic lymphocytes and an interferon-stimulated population
+- quality control includes feature/count/mitochondrial filtering and library-specific doublet detection with scDblFinder
+- clustering uses six principal components and Seurat resolution 0.3
+- disease-group composition is shown descriptively because barcode suffixes represent libraries, not independent donors
 
-Library composition is descriptive. Original Kruskal-Wallis results are retained only as historical evidence and are not regenerated or interpreted as donor-independent disease tests. A validated donor/time-point crosswalk is needed before disease comparisons.
+## Selected figures
 
-## Run and validate
+### Annotated UMAP
 
-Use R 4.5.2, Pandoc, and the packages in [provenance/package_versions.csv](provenance/package_versions.csv). This is a historical dependency record, not a locked environment. R entry points prefer an existing repository-local `.r-library/`; shared libraries are read only. See [dependency and runtime guidance](docs/VALIDATION.md#runtime-and-dependencies).
+![Annotated PBMC UMAP](outputs/figures/annotated_umap.png)
 
-Python validation requires Python 3.11 or newer (standard library only).
+### Canonical marker expression
 
-From this repository:
+![Canonical marker dot plot](outputs/figures/canonical_marker_dotplot.png)
 
-~~~sh
-Rscript --vanilla scripts/validate.R
-python scripts/validate_repository.py
-Rscript --vanilla tests/test_render.R
-Rscript --vanilla scripts/check_environment.R
-python scripts/validate_raw.py data/raw --full
-Rscript --vanilla scripts/render.R data/raw --preflight
-Rscript --vanilla scripts/render.R data/raw
-~~~
+### Cluster composition by group
 
-The default input directory is `data/raw/`. You may pass a different existing input directory; relative arguments resolve from the caller's working directory. Rendering requires `matrix.mtx.gz`, `features.tsv.gz`, and `barcodes.tsv.gz`. The streaming validator also accepts plain equivalents. Original compressed/plain pairs were previously verified identical after decompression.
+![Cluster composition by group](outputs/figures/cluster_composition_by_group.png)
 
-For an independent checkout, download the three [GEO supplementary files](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149689) into data/raw/ and remove the GSE149689_ filename prefix. Do not commit the raw matrix. The original local hashes are recorded in the workspace manifest; upstream binary identity has not been independently established by this cleanup.
+## Workflow
 
-Refresh metadata with:
+```mermaid
+flowchart LR
+    A[10x count matrix + GEO metadata] --> B[QC filtering]
+    B --> C[Library-specific doublet detection]
+    C --> D[Gene filtering + normalization]
+    D --> E[Variable features + scaling]
+    E --> F[PCA]
+    F --> G[Graph clustering + UMAP]
+    G --> H[Marker discovery]
+    H --> I[Annotation review]
+    I --> J[Descriptive group composition]
+```
 
-~~~sh
-python scripts/refresh_geo_metadata.py --check  # offline comparison; changes nothing
-python scripts/refresh_geo_metadata.py          # explicit online refresh
-~~~
+## Selected outputs
 
-This derives groups from GEO characteristics and verifies barcode suffixes against GEO's explicit mapping. It never guesses donor IDs from age, sex, or barcode.
+- [Cluster annotation table](outputs/tables/cluster_annotation_table.csv)
+- [Top markers by cluster](outputs/tables/top10_markers_by_cluster.csv)
+- [All retained marker results](outputs/tables/all_markers.csv)
+- [Cluster composition by group](outputs/tables/cluster_composition_by_group.csv)
+- [Cluster composition by sample](outputs/tables/cluster_composition_by_sample.csv)
+- [Doublet burden by sample](outputs/tables/doublet_by_sample.csv)
 
-The optional [atlas sensitivity source](analysis/atlas_sensitivity.Rmd) retains the separate 15–25-PC/resolution screen. Run it with:
+## Repository structure
 
-~~~sh
-Rscript --vanilla scripts/render.R data/raw atlas --preflight
-Rscript --vanilla scripts/render.R data/raw atlas
-~~~
+- `data/` — GEO-derived library metadata, annotation reference and raw-data download instructions
+- `analysis/` — run script, R Markdown workflow and small validation helper
+- `outputs/` — selected figures, result tables and portfolio report
+- `README.md` — project overview and reproduction instructions
 
-Its default anchor and heuristic labels are provisional, not an established optimum or validated replacement for the primary analysis.
+## Analysis workflow
 
-## Outputs and provenance
+The workflow performs sample mapping, QC, sample-aware doublet detection, gene filtering, log normalization, highly-variable-feature selection, scaling, PCA, graph-based clustering, UMAP, marker discovery, annotation review and descriptive cluster-composition summaries.
 
-New runs write only to outputs/pbmc/ or outputs/atlas_sensitivity/, including reports, figures, tables, objects, sessions, and SHA-256 manifests. Generated outputs, raw inputs, local libraries, and caches are ignored by Git. A nonempty run directory is preserved: deliberately archive it before requesting a new render. Input manifests use `repository` or `data_dir` scopes with relative paths. Only the primary workflow lists the historical membership file as an annotation input. `--preflight` checks dependencies and input availability without executing analysis.
+The annotation safeguard does not reuse cluster numbers blindly: historical labels are transferred only when the complete barcode partition matches the reviewed reference up to a cluster-number permutation.
 
-[docs/AUDIT.md](docs/AUDIT.md) records the audit. [docs/VALIDATION.md](docs/VALIDATION.md) distinguishes completed checks from remaining validation. [reference/](reference/) contains historical exports, including the original composition-test table whose independence assumption is unresolved. Older 14-cluster markers, screenshots, session files, and render caches remain solely in the untouched original workspace.
+## Run
 
-The 127-million-entry matrix requires substantial memory when loaded into R. Streaming validation uses much less memory and does not establish analytical reproducibility.
+Use R 4.5.2 or a compatible recent R installation with these packages available:
 
-## Sources
+`Seurat`, `scDblFinder`, `tidyverse`, `Matrix`, `patchwork`, `SingleR`, `SingleCellExperiment`, `future`, `celldex`, `BiocParallel`, `rmarkdown`, and `knitr`.
 
-- [GSE149689 at GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149689)
-- [Lee et al. primary study](https://pmc.ncbi.nlm.nih.gov/articles/PMC7402635/)
+Download the GSE149689 supplementary 10x files into `data/raw/` and rename them to:
 
-The exact maintenance file list and original branch state are recorded in [docs/MAINTENANCE.md](docs/MAINTENANCE.md).
+```text
+matrix.mtx.gz
+features.tsv.gz
+barcodes.tsv.gz
+```
+
+Then run:
+
+```sh
+Rscript analysis/run_analysis.R data/raw
+```
+
+The wrapper renders the documented R Markdown workflow and writes the report to `outputs/pbmc_analysis.html`, figures to `outputs/figures/`, and tables to `outputs/tables/`.
+
+Raw 10x files are intentionally not committed because the sparse matrix is large. See [data/README.md](data/README.md) for the download source.
+
+## Data and source study
+
+GEO accession: [GSE149689](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149689)
+
+Primary study: [Lee et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC7402635/)
+
+The series contains 11 COVID-19 libraries, five influenza libraries and four healthy controls. The primary study reports eight COVID-19 patients, including three sampled twice. Barcode suffixes are therefore library identifiers and must not be treated as independent donor IDs.
+
+## Technical skills demonstrated
+
+R, Seurat, Bioconductor, scRNA-seq quality control, doublet detection, sparse matrices, PCA, graph-based clustering, UMAP, marker-gene analysis, cell-type annotation, data visualisation, metadata validation, and reproducible R Markdown workflows.
+
+## Limitations
+
+This is a compact descriptive scRNA-seq portfolio project rather than a donor-level disease-comparison study. Repeated COVID-19 sampling means library-level proportions are not independent biological replicates. Cell-type annotations are marker-based and should be interpreted as cluster-level labels rather than absolute cell identities. The optional atlas-sensitivity work from the development repository is intentionally excluded from this portfolio version so the project remains focused on the primary PBMC workflow.
+
+Selected committed figures and tables are retained validated exports; the refactored primary workflow was also completed successfully end-to-end before this portfolio simplification.
 
 Author: James Hughes

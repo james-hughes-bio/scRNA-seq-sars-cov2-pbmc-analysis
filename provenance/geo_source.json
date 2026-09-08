@@ -1,8 +1,0 @@
-{
-  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE149nnn/GSE149689/matrix/GSE149689_series_matrix.txt.gz",
-  "retrieved_utc": "2026-09-05T17:46:57.381162+00:00",
-  "sha256": "418ec7aeb3d72477f63a41839104c97f446e61ca298b85ba5ae9c3c9be66b30a",
-  "rows": 20,
-  "method": "GEO sample characteristics; scRNA barcode suffix checked against overall design",
-  "donor_mapping": "Not inferred from library index, age, sex, or barcode"
-}
