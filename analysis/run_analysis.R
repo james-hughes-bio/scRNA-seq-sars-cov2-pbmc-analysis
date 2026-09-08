@@ -5,6 +5,30 @@ args <- commandArgs(trailingOnly = TRUE)
 data_dir <- if (length(args) >= 1L) args[[1]] else file.path("data", "raw")
 
 repo_root <- normalizePath(".", winslash = "/", mustWork = TRUE)
+
+# Preserve the runtime behaviour used by the previously validated workflow.
+# The project-local library is preferred before any package namespaces are loaded,
+# avoiding incompatible mixtures of local and shared package versions.
+local_lib <- file.path(repo_root, ".r-library")
+if (dir.exists(local_lib)) {
+  .libPaths(c(normalizePath(local_lib, winslash = "/", mustWork = TRUE), .libPaths()))
+}
+Sys.setenv(R_USER_CACHE_DIR = file.path(repo_root, ".cache"))
+
+# Discover Pandoc in the same way as the validated project runtime.
+pandoc_candidates <- c(
+  Sys.getenv("RSTUDIO_PANDOC"),
+  dirname(Sys.which("pandoc")),
+  file.path(Sys.getenv("ProgramFiles"), "RStudio/resources/app/bin/quarto/bin/tools")
+)
+for (candidate in pandoc_candidates[nzchar(pandoc_candidates)]) {
+  pandoc_bin <- file.path(candidate, if (.Platform$OS.type == "windows") "pandoc.exe" else "pandoc")
+  if (file.exists(pandoc_bin)) {
+    Sys.setenv(RSTUDIO_PANDOC = candidate)
+    break
+  }
+}
+
 analysis_rmd <- file.path(repo_root, "analysis", "pbmc_analysis.Rmd")
 validation_src <- file.path(repo_root, "analysis", "validation.R")
 annotation_src <- file.path(repo_root, "data", "reference", "cell_metadata_with_annotations.csv")
