@@ -1,0 +1,241 @@
+"sample","group","annotation","cells_in_annotation","total_cells","prop"
+"1","COVID","Activated cytotoxic T cells",7,3829,0.00182815356489945
+"1","COVID","Activated monocytes",280,3829,0.0731261425959781
+"1","COVID","B cells",673,3829,0.175763907025333
+"1","COVID","CD8 T cells",292,3829,0.0762601201358057
+"1","COVID","Erythroid cells",88,3829,0.022982501958736
+"1","COVID","IFN-stimulated mixed cells",102,3829,0.0266388090885349
+"1","COVID","IL7R+ naive/central-memory T cells",466,3829,0.121702794463306
+"1","COVID","NK-like cytotoxic lymphocytes",245,3829,0.0639853747714808
+"1","COVID","Non-classical monocytes",58,3829,0.0151475581091669
+"1","COVID","Platelet-rich cells",662,3829,0.172891094280491
+"1","COVID","S100A8+ inflammatory monocytes",956,3829,0.249673544006268
+"10","COVID","Activated cytotoxic T cells",4,663,0.00603318250377074
+"10","COVID","Activated monocytes",41,663,0.0618401206636501
+"10","COVID","B cells",160,663,0.24132730015083
+"10","COVID","CD8 T cells",60,663,0.0904977375565611
+"10","COVID","Erythroid cells",1,663,0.00150829562594268
+"10","COVID","IFN-stimulated mixed cells",20,663,0.0301659125188537
+"10","COVID","IL7R+ naive/central-memory T cells",52,663,0.0784313725490196
+"10","COVID","NK-like cytotoxic lymphocytes",18,663,0.0271493212669683
+"10","COVID","Non-classical monocytes",2,663,0.00301659125188537
+"10","COVID","Platelet-rich cells",19,663,0.028657616892911
+"10","COVID","S100A8+ inflammatory monocytes",286,663,0.431372549019608
+"11","COVID","Activated cytotoxic T cells",12,3602,0.00333148250971682
+"11","COVID","Activated monocytes",508,3602,0.141032759578012
+"11","COVID","B cells",469,3602,0.130205441421433
+"11","COVID","CD8 T cells",572,3602,0.158800666296502
+"11","COVID","Erythroid cells",1,3602,0.000277623542476402
+"11","COVID","IFN-stimulated mixed cells",104,3602,0.0288728484175458
+"11","COVID","IL7R+ naive/central-memory T cells",725,3602,0.201277068295391
+"11","COVID","NK-like cytotoxic lymphocytes",554,3602,0.153803442531927
+"11","COVID","Non-classical monocytes",213,3602,0.0591338145474736
+"11","COVID","Platelet-rich cells",137,3602,0.0380344253192671
+"11","COVID","S100A8+ inflammatory monocytes",307,3602,0.0852304275402554
+"12","COVID","Activated cytotoxic T cells",57,4017,0.0141896938013443
+"12","COVID","Activated monocytes",569,4017,0.141647996016928
+"12","COVID","B cells",562,4017,0.139905402041324
+"12","COVID","CD8 T cells",903,4017,0.224794622852875
+"12","COVID","IFN-stimulated mixed cells",123,4017,0.0306198655713219
+"12","COVID","IL7R+ naive/central-memory T cells",423,4017,0.105302464525765
+"12","COVID","NK-like cytotoxic lymphocytes",790,4017,0.196664177246702
+"12","COVID","Non-classical monocytes",128,4017,0.0318645755538959
+"12","COVID","Platelet-rich cells",266,4017,0.06621857107294
+"12","COVID","S100A8+ inflammatory monocytes",196,4017,0.0487926313169032
+"13","Normal","Activated cytotoxic T cells",4,4222,0.000947418285172904
+"13","Normal","Activated monocytes",702,4222,0.166271909047845
+"13","Normal","B cells",373,4222,0.0883467550923733
+"13","Normal","CD8 T cells",434,4222,0.10279488394126
+"13","Normal","IFN-stimulated mixed cells",144,4222,0.0341070582662245
+"13","Normal","IL7R+ naive/central-memory T cells",829,4222,0.196352439602084
+"13","Normal","NK-like cytotoxic lymphocytes",1047,4222,0.247986736144008
+"13","Normal","Non-classical monocytes",518,4222,0.122690667929891
+"13","Normal","Platelet-rich cells",36,4222,0.00852676456655613
+"13","Normal","S100A8+ inflammatory monocytes",135,4222,0.0319753671245855
+"14","Normal","Activated cytotoxic T cells",6,4141,0.00144892538034291
+"14","Normal","Activated monocytes",511,4141,0.123400144892538
+"14","Normal","B cells",385,4141,0.0929727119053369
+"14","Normal","CD8 T cells",589,4141,0.142236174836996
+"14","Normal","Erythroid cells",15,4141,0.00362231345085728
+"14","Normal","IFN-stimulated mixed cells",719,4141,0.173629558077759
+"14","Normal","IL7R+ naive/central-memory T cells",625,4141,0.150929727119053
+"14","Normal","NK-like cytotoxic lymphocytes",667,4141,0.161072204781454
+"14","Normal","Non-classical monocytes",324,4141,0.0782419705385173
+"14","Normal","Platelet-rich cells",123,4141,0.0297029702970297
+"14","Normal","S100A8+ inflammatory monocytes",177,4141,0.0427432987201159
+"15","COVID","Activated cytotoxic T cells",1,1240,0.000806451612903226
+"15","COVID","Activated monocytes",8,1240,0.00645161290322581
+"15","COVID","B cells",85,1240,0.0685483870967742
+"15","COVID","CD8 T cells",132,1240,0.106451612903226
+"15","COVID","IFN-stimulated mixed cells",43,1240,0.0346774193548387
+"15","COVID","IL7R+ naive/central-memory T cells",51,1240,0.0411290322580645
+"15","COVID","NK-like cytotoxic lymphocytes",125,1240,0.100806451612903
+"15","COVID","Non-classical monocytes",2,1240,0.00161290322580645
+"15","COVID","Platelet-rich cells",578,1240,0.466129032258065
+"15","COVID","S100A8+ inflammatory monocytes",215,1240,0.173387096774194
+"16","COVID","Activated cytotoxic T cells",2,1408,0.00142045454545455
+"16","COVID","Activated monocytes",22,1408,0.015625
+"16","COVID","B cells",169,1408,0.120028409090909
+"16","COVID","CD8 T cells",76,1408,0.0539772727272727
+"16","COVID","Erythroid cells",129,1408,0.0916193181818182
+"16","COVID","IFN-stimulated mixed cells",111,1408,0.0788352272727273
+"16","COVID","IL7R+ naive/central-memory T cells",248,1408,0.176136363636364
+"16","COVID","NK-like cytotoxic lymphocytes",35,1408,0.0248579545454545
+"16","COVID","Platelet-rich cells",426,1408,0.302556818181818
+"16","COVID","S100A8+ inflammatory monocytes",190,1408,0.134943181818182
+"17","COVID","Activated cytotoxic T cells",9,1218,0.00738916256157635
+"17","COVID","Activated monocytes",114,1218,0.0935960591133005
+"17","COVID","B cells",240,1218,0.197044334975369
+"17","COVID","CD8 T cells",121,1218,0.0993431855500821
+"17","COVID","GZMB+ cytotoxic lymphocytes",5,1218,0.00410509031198686
+"17","COVID","IFN-stimulated mixed cells",85,1218,0.0697865353037767
+"17","COVID","IL7R+ naive/central-memory T cells",29,1218,0.0238095238095238
+"17","COVID","NK-like cytotoxic lymphocytes",141,1218,0.11576354679803
+"17","COVID","Non-classical monocytes",1,1218,0.000821018062397373
+"17","COVID","Platelet-rich cells",78,1218,0.0640394088669951
+"17","COVID","S100A8+ inflammatory monocytes",395,1218,0.324302134646962
+"18","COVID","Activated cytotoxic T cells",21,2914,0.00720658888126287
+"18","COVID","Activated monocytes",709,2914,0.243308167467399
+"18","COVID","B cells",538,2914,0.184625943719973
+"18","COVID","CD8 T cells",324,2914,0.111187371310913
+"18","COVID","Erythroid cells",1,2914,0.000343170899107756
+"18","COVID","GZMB+ cytotoxic lymphocytes",1,2914,0.000343170899107756
+"18","COVID","IFN-stimulated mixed cells",115,2914,0.0394646533973919
+"18","COVID","IL7R+ naive/central-memory T cells",152,2914,0.0521619766643789
+"18","COVID","NK-like cytotoxic lymphocytes",361,2914,0.1238846945779
+"18","COVID","Non-classical monocytes",363,2914,0.124571036376115
+"18","COVID","Platelet-rich cells",145,2914,0.0497597803706246
+"18","COVID","S100A8+ inflammatory monocytes",184,2914,0.063143445435827
+"19","Normal","Activated cytotoxic T cells",3,3663,0.000819000819000819
+"19","Normal","Activated monocytes",776,3663,0.211848211848212
+"19","Normal","B cells",334,3663,0.0911820911820912
+"19","Normal","CD8 T cells",139,3663,0.0379470379470379
+"19","Normal","Erythroid cells",3,3663,0.000819000819000819
+"19","Normal","GZMB+ cytotoxic lymphocytes",1,3663,0.000273000273000273
+"19","Normal","IFN-stimulated mixed cells",92,3663,0.0251160251160251
+"19","Normal","IL7R+ naive/central-memory T cells",412,3663,0.112476112476112
+"19","Normal","NK-like cytotoxic lymphocytes",1344,3663,0.366912366912367
+"19","Normal","Non-classical monocytes",227,3663,0.061971061971062
+"19","Normal","Platelet-rich cells",27,3663,0.00737100737100737
+"19","Normal","S100A8+ inflammatory monocytes",305,3663,0.0832650832650833
+"2","COVID","Activated cytotoxic T cells",16,4514,0.00354452813469207
+"2","COVID","Activated monocytes",336,4514,0.0744350908285334
+"2","COVID","B cells",417,4514,0.092379264510412
+"2","COVID","CD8 T cells",1033,4514,0.228843597696057
+"2","COVID","Erythroid cells",7,4514,0.00155073105892778
+"2","COVID","GZMB+ cytotoxic lymphocytes",4,4514,0.000886132033673017
+"2","COVID","IFN-stimulated mixed cells",97,4514,0.0214887018165707
+"2","COVID","IL7R+ naive/central-memory T cells",1443,4514,0.319672131147541
+"2","COVID","NK-like cytotoxic lymphocytes",777,4514,0.172131147540984
+"2","COVID","Non-classical monocytes",46,4514,0.0101905183872397
+"2","COVID","Platelet-rich cells",162,4514,0.0358883473637572
+"2","COVID","S100A8+ inflammatory monocytes",176,4514,0.0389898094816128
+"20","COVID","Activated cytotoxic T cells",9,4004,0.00224775224775225
+"20","COVID","Activated monocytes",1091,4004,0.272477522477522
+"20","COVID","B cells",588,4004,0.146853146853147
+"20","COVID","CD8 T cells",532,4004,0.132867132867133
+"20","COVID","IFN-stimulated mixed cells",292,4004,0.0729270729270729
+"20","COVID","IL7R+ naive/central-memory T cells",322,4004,0.0804195804195804
+"20","COVID","NK-like cytotoxic lymphocytes",405,4004,0.101148851148851
+"20","COVID","Non-classical monocytes",186,4004,0.0464535464535465
+"20","COVID","Platelet-rich cells",407,4004,0.101648351648352
+"20","COVID","S100A8+ inflammatory monocytes",172,4004,0.042957042957043
+"3","Flu","Activated cytotoxic T cells",1257,4439,0.283171885559811
+"3","Flu","Activated monocytes",76,4439,0.0171209731921604
+"3","Flu","B cells",18,4439,0.00405496733498536
+"3","Flu","CD8 T cells",81,4439,0.0182473530074341
+"3","Flu","Erythroid cells",60,4439,0.0135165577832845
+"3","Flu","GZMB+ cytotoxic lymphocytes",175,4439,0.0394232935345799
+"3","Flu","IFN-stimulated mixed cells",85,4439,0.0191484568596531
+"3","Flu","IL7R+ naive/central-memory T cells",181,4439,0.0407749493129083
+"3","Flu","NK-like cytotoxic lymphocytes",41,4439,0.00923631448524443
+"3","Flu","Platelet-rich cells",2,4439,0.000450551926109484
+"3","Flu","S100A8+ inflammatory monocytes",2463,4439,0.55485469700383
+"4","Flu","Activated monocytes",243,1235,0.196761133603239
+"4","Flu","B cells",230,1235,0.186234817813765
+"4","Flu","CD8 T cells",77,1235,0.0623481781376518
+"4","Flu","Erythroid cells",1,1235,0.000809716599190283
+"4","Flu","IFN-stimulated mixed cells",76,1235,0.0615384615384615
+"4","Flu","IL7R+ naive/central-memory T cells",128,1235,0.103643724696356
+"4","Flu","NK-like cytotoxic lymphocytes",191,1235,0.154655870445344
+"4","Flu","Non-classical monocytes",49,1235,0.0396761133603239
+"4","Flu","Platelet-rich cells",22,1235,0.0178137651821862
+"4","Flu","S100A8+ inflammatory monocytes",218,1235,0.176518218623482
+"5","Normal","Activated cytotoxic T cells",2,4027,0.000496647628507574
+"5","Normal","Activated monocytes",240,4027,0.0595977154209089
+"5","Normal","B cells",743,4027,0.184504593990564
+"5","Normal","CD8 T cells",1453,4027,0.360814502110752
+"5","Normal","Erythroid cells",1,4027,0.000248323814253787
+"5","Normal","IFN-stimulated mixed cells",96,4027,0.0238390861683635
+"5","Normal","IL7R+ naive/central-memory T cells",418,4027,0.103799354358083
+"5","Normal","NK-like cytotoxic lymphocytes",827,4027,0.205363794387882
+"5","Normal","Non-classical monocytes",163,4027,0.0404767817233673
+"5","Normal","Platelet-rich cells",18,4027,0.00446982865656816
+"5","Normal","S100A8+ inflammatory monocytes",66,4027,0.0163893717407499
+"6","Flu","Activated cytotoxic T cells",8,2390,0.00334728033472803
+"6","Flu","Activated monocytes",137,2390,0.0573221757322176
+"6","Flu","B cells",19,2390,0.00794979079497908
+"6","Flu","CD8 T cells",390,2390,0.163179916317992
+"6","Flu","Erythroid cells",1,2390,0.000418410041841004
+"6","Flu","GZMB+ cytotoxic lymphocytes",1,2390,0.000418410041841004
+"6","Flu","IFN-stimulated mixed cells",41,2390,0.0171548117154812
+"6","Flu","IL7R+ naive/central-memory T cells",37,2390,0.0154811715481172
+"6","Flu","NK-like cytotoxic lymphocytes",363,2390,0.151882845188285
+"6","Flu","Non-classical monocytes",18,2390,0.00753138075313808
+"6","Flu","Platelet-rich cells",48,2390,0.0200836820083682
+"6","Flu","S100A8+ inflammatory monocytes",1327,2390,0.555230125523013
+"7","Flu","Activated cytotoxic T cells",1,977,0.00102354145342886
+"7","Flu","Activated monocytes",125,977,0.127942681678608
+"7","Flu","B cells",151,977,0.154554759467758
+"7","Flu","CD8 T cells",163,977,0.166837256908905
+"7","Flu","Erythroid cells",1,977,0.00102354145342886
+"7","Flu","IFN-stimulated mixed cells",12,977,0.0122824974411464
+"7","Flu","IL7R+ naive/central-memory T cells",11,977,0.0112589559877175
+"7","Flu","NK-like cytotoxic lymphocytes",213,977,0.218014329580348
+"7","Flu","Non-classical monocytes",164,977,0.167860798362334
+"7","Flu","Platelet-rich cells",17,977,0.0174002047082907
+"7","Flu","S100A8+ inflammatory monocytes",119,977,0.121801432958035
+"8","Flu","Activated cytotoxic T cells",1,523,0.00191204588910134
+"8","Flu","Activated monocytes",3,523,0.00573613766730402
+"8","Flu","B cells",1,523,0.00191204588910134
+"8","Flu","CD8 T cells",100,523,0.191204588910134
+"8","Flu","Erythroid cells",169,523,0.323135755258126
+"8","Flu","IFN-stimulated mixed cells",50,523,0.0956022944550669
+"8","Flu","IL7R+ naive/central-memory T cells",5,523,0.00956022944550669
+"8","Flu","NK-like cytotoxic lymphocytes",173,523,0.330783938814532
+"8","Flu","Platelet-rich cells",4,523,0.00764818355640535
+"8","Flu","S100A8+ inflammatory monocytes",17,523,0.0325047801147228
+"9","COVID","Activated monocytes",6,354,0.0169491525423729
+"9","COVID","B cells",18,354,0.0508474576271186
+"9","COVID","CD8 T cells",42,354,0.11864406779661
+"9","COVID","IFN-stimulated mixed cells",13,354,0.0367231638418079
+"9","COVID","IL7R+ naive/central-memory T cells",2,354,0.00564971751412429
+"9","COVID","NK-like cytotoxic lymphocytes",121,354,0.34180790960452
+"9","COVID","Non-classical monocytes",2,354,0.00564971751412429
+"9","COVID","Platelet-rich cells",45,354,0.127118644067797
+"9","COVID","S100A8+ inflammatory monocytes",105,354,0.296610169491525
+"1","COVID","GZMB+ cytotoxic lymphocytes",0,3829,0
+"10","COVID","GZMB+ cytotoxic lymphocytes",0,663,0
+"11","COVID","GZMB+ cytotoxic lymphocytes",0,3602,0
+"12","COVID","Erythroid cells",0,4017,0
+"12","COVID","GZMB+ cytotoxic lymphocytes",0,4017,0
+"13","Normal","Erythroid cells",0,4222,0
+"13","Normal","GZMB+ cytotoxic lymphocytes",0,4222,0
+"14","Normal","GZMB+ cytotoxic lymphocytes",0,4141,0
+"15","COVID","Erythroid cells",0,1240,0
+"15","COVID","GZMB+ cytotoxic lymphocytes",0,1240,0
+"16","COVID","GZMB+ cytotoxic lymphocytes",0,1408,0
+"16","COVID","Non-classical monocytes",0,1408,0
+"17","COVID","Erythroid cells",0,1218,0
+"20","COVID","Erythroid cells",0,4004,0
+"20","COVID","GZMB+ cytotoxic lymphocytes",0,4004,0
+"3","Flu","Non-classical monocytes",0,4439,0
+"4","Flu","Activated cytotoxic T cells",0,1235,0
+"4","Flu","GZMB+ cytotoxic lymphocytes",0,1235,0
+"5","Normal","GZMB+ cytotoxic lymphocytes",0,4027,0
+"7","Flu","GZMB+ cytotoxic lymphocytes",0,977,0
+"8","Flu","GZMB+ cytotoxic lymphocytes",0,523,0
+"8","Flu","Non-classical monocytes",0,523,0
+"9","COVID","Activated cytotoxic T cells",0,354,0
+"9","COVID","Erythroid cells",0,354,0
+"9","COVID","GZMB+ cytotoxic lymphocytes",0,354,0

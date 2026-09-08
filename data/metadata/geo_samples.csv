@@ -1,0 +1,21 @@
+geo_accession,source_title,subject group,subject status,age,gender,cell type,sample,group,donor_id,donor_note
+GSM4509011,Sample 1_nCoV 1 scRNA-seq [SW103],COVID-19 patient,severe COVID-19 patient,63,M,PBMC,1,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509012,Sample 2_nCoV 2 scRNA-seq [SW104],COVID-19 patient,mild COVID-19 patient,82,F,PBMC,2,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509013,Sample 3_Flu 1 scRNA-seq [SW105],Influenza patient,,68,M,PBMC,3,Flu,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509014,Sample 4_Flu 2 scRNA-seq [SW106],Influenza patient,,75,F,PBMC,4,Flu,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509015,Sample 5_Normal 1 scRNA-seq [SW107],healthy control,,63,F,PBMC,5,Normal,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509016,Sample 6_Flu 3 scRNA-seq [SW108],Influenza patient,,70,M,PBMC,6,Flu,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509017,Sample 7_Flu 4 scRNA-seq [SW109],Influenza patient,,56,F,PBMC,7,Flu,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509018,Sample 8_Flu 5 scRNA-seq [SW110],Influenza patient,,78,M,PBMC,8,Flu,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509019,Sample 9_nCoV 3 scRNA-seq [SW111],COVID-19 patient,severe COVID-19 patient,67,F,PBMC,9,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509020,Sample 10_nCoV 4 scRNA-seq [SW112],COVID-19 patient,severe COVID-19 patient,67,F,PBMC,10,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509021,Sample 11_nCoV 5 scRNA-seq [SW113],COVID-19 patient,mild COVID-19 patient,46,M,PBMC,11,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509022,Sample 12_nCoV 6 scRNA-seq [SW114],COVID-19 patient,mild COVID-19 patient,38,F,PBMC,12,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509023,Sample 13_Normal 2 scRNA-seq [SW115],healthy control,,54,F,PBMC,13,Normal,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509024,Sample 14_Normal 3 scRNA-seq [SW116],healthy control,,67,F,PBMC,14,Normal,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509025,Sample 15_nCoV 7 scRNA-seq [SW117],COVID-19 patient,severe COVID-19 patient,73,F,PBMC,15,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509026,Sample 16_nCoV 8 scRNA-seq [SW118],COVID-19 patient,severe COVID-19 patient,73,F,PBMC,16,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509027,Sample 17_nCoV 9 scRNA-seq [SW119],COVID-19 patient,severe COVID-19 patient,61,M,PBMC,17,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509028,Sample 18_nCoV 10 scRNA-seq [SW120],COVID-19 patient,mild COVID-19 patient,61,M,PBMC,18,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509029,Sample 19_Normal 4 scRNA-seq [SW121],healthy control,,63,M,PBMC,19,Normal,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
+GSM4509030,Sample 20_nCoV 11 scRNA-seq [SW122],COVID-19 patient,Asymptomatic case of COVID-19 patient,62,F,PBMC,20,COVID,,Library suffix; not an independent donor ID. Lee et al. reports repeated samples.
